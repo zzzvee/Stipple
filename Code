@@ -1,0 +1,212 @@
+import controlP5.*;
+ControlP5 gui;
+
+import ddf.minim.analysis.*;
+import ddf.minim.*;
+import ddf.minim.signals.*;
+
+Minim minim;
+AudioOutput out;
+
+ArrayList<MyNote> notes = new ArrayList<MyNote>();
+int pitches[] = new int[14];
+
+boolean bStart = true;
+PFont f;
+
+boolean toggleMirror = true;
+int tranSlider = 255;
+
+float grow = 7;
+float inc = 3;
+
+//--------------------------------------------------
+void setup() {
+  size(1000, 700, P2D);
+  smooth();
+
+  f = createFont("Arial", 16, true);
+
+  minim = new Minim(this);
+  out = minim.getLineOut(Minim.STEREO);
+  
+    pitches[0] = 262;  
+    pitches[1] = 277; 
+    pitches[2] = 294; 
+    pitches[3] = 311; 
+    pitches[4] = 330;  
+    pitches[5] = 349;  
+    pitches[6] = 370; 
+    pitches[7] = 392; 
+    pitches[8] = 415;  
+    pitches[9] = 440; 
+    pitches[10] = 466; 
+    pitches[11] = 250;  
+    pitches[12] = 242; 
+    pitches[13] = 230; 
+  
+  for(int i = 0; i < 14; i++){
+  }
+  
+  gui = new ControlP5(this);
+  setup_gui();
+}
+
+
+
+//--------------------------------------------------
+void draw_splash_screen(){
+  background(255);
+}
+
+//--------------------------------------------------
+void draw() {
+  
+  if (bStart == true){
+    draw_splash_screen();
+    textFont (f, 10);
+    fill(255, 0, 255);
+    text("Stipple \nClick mouse to begin", width/2, height/2);
+  }
+     else if (bStart == false){
+      background(0);
+      
+    for (int i = 0; i < notes.size(); i++) {
+      MyNote note = notes.get(i);
+      
+    int ColourSlider = color(255, 150, frameCount%255, tranSlider); 
+  
+    noStroke();
+    fill(ColourSlider);
+    int num = (int)map(note.get_pitch(),230,466,20,400);
+    int p = 0;
+    while (p < num) {
+    float a = TWO_PI/num*p;
+    float x = width/2 + cos(a)*180;
+    float y = height/2 + sin(a)*180;
+    
+    int numberofRotations = (int) map(mouseX, 0, width, 0, 50);
+    float a2 = numberofRotations*TWO_PI/num*p;
+    x = x + cos(a+a2)*50;
+    y = y + sin(a+a2)*50;
+    
+    ellipse(x, y, grow, grow);
+    p = p + 1;
+  }
+  grow = grow + inc;
+  if (grow > 7) {inc = inc*-1;}
+  if(grow < 1) {inc = +1;}
+    }
+ 
+ if (toggleMirror == true) {
+   flipHalf();
+ }
+      String s = "Press keys A-L, Z-M for sound \nMove mouse to change pattern";
+      textFont(f, 10);
+      fill(255);
+      text(s, 20, 250, 100, 100);
+    }
+}
+
+//--------------------------------------------------
+void mousePressed() {
+  bStart = false;
+}
+
+//--------------------------------------------------
+void keyPressed() {
+
+  switch(key) {
+  case 'a': 
+    notes.add(new MyNote(pitches[0],0.2));  
+    break;
+  case 's': 
+      notes.add(new MyNote(pitches[1],0.2));  
+    break;
+  case 'd': 
+    notes.add(new MyNote(pitches[2],0.2));  
+    break;
+  case 'f': 
+    notes.add(new MyNote(pitches[3],0.2));  
+    break;
+  case 'h': 
+    notes.add(new MyNote(pitches[4],0.2));  
+    break;
+  case 'j': 
+    notes.add(new MyNote(pitches[5],0.2));  
+    break;
+  case 'k': 
+    notes.add(new MyNote(pitches[6],0.2));  
+    break;
+  case 'l': 
+    notes.add(new MyNote(pitches[7],0.2));  
+    break;
+  case 'b': 
+    notes.add(new MyNote(pitches[8],0.2));  
+    break;
+  case 'n': 
+    notes.add(new MyNote(pitches[9],0.2));  
+    break;
+  case 'm': 
+    notes.add(new MyNote(pitches[10],0.2));  
+    break;
+  case 'z': 
+    notes.add(new MyNote(pitches[11],0.2));  
+    break;
+  case 'x': 
+    notes.add(new MyNote(pitches[12],0.2));  
+    break;
+  case 'c': 
+    notes.add(new MyNote(pitches[13],0.2));  
+    break;
+  }
+}
+
+//--------------------------------------------------
+void setup_gui() {
+  Group note_group = gui.addGroup("Note Control")
+  .setPosition(15, 20)
+  .setBackgroundHeight(200)
+  .setWidth(100)
+  .setBackgroundColor(color(0));
+  
+  Textlabel noteLabel; 
+  noteLabel = gui.addTextlabel("noteLabel")
+  .setText("Colour Control")
+  .setPosition(0, 5)
+  .setColorValue(255)
+  .setGroup(note_group);
+  
+  gui.addToggle("toggleMirror")
+  .setPosition(20, 50)
+  .setSize(50, 20)
+  .setValue(false)
+  .setMode(ControlP5.SWITCH);
+  
+  gui.addSlider("tranSlider")
+  .setPosition(20, 90)
+  .setSize(20, 100)
+  .setRange(1, 255);
+  
+} 
+
+//--------------------------------------------------
+void flipHalf() {
+  if (toggleMirror == true){
+  loadPixels();
+  for(int x=width/2; x<width; x++) {
+    for (int y=0; y<height; y++){
+      pixels[x+y*width] = pixels[(width-x)+y*width];
+    }
+   }
+    updatePixels();
+  }
+}
+
+//--------------------------------------------------
+void stop() {
+  out.close();
+  minim.stop();
+
+  super.stop();
+}
